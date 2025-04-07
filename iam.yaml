@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Cloudformation template for IAM'
+
+Resources:
+
+#IAM USER CREATION and adding user to group
+  MyIAMUser:
+    Type: 'AWS::IAM::User'
+    Properties:
+      UserName: 'NilajCFN'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AdministratorAccess'
+      
+  #IAM GROUP CREATION
+  IAMGroup:
+    Type: 'AWS::IAM::Group'
+    Properties:
+      GroupName: 'Developer_cfn'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess'
+        - 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
+  
+  #Attach user to group
+  AttachUser:
+    Type: 'AWS::IAM::UserToGroupAddition'
+    Properties:
+      GroupName: !Ref IAMGroup
+      Users:
+        - !Ref MyIAMUser
+  
+  #IAM Role Creation
+  IAMRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: 'Ec2DynamoDB_cfn' 
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess'
+      Tags:
+        - Key: Name
+          Value: IAMRole
+  
+  #IAM Policy Creation:
+  IAMPolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: 'DescribeEc2Instances_cfn'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Action:
+              - 'ec2:DescribeInstances'
+              - 's3:GetObject'
+            Resource: '*'
+      Roles:
+       - !Ref IAMRole
