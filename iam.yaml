@@ -61,5 +61,8 @@ Resources:
               - 'ec2:DescribeInstances'
               - 's3:GetObject'
             Resource: '*'
+            Condition:
+              StringLike:
+                ec2:Region: '*'
       Roles:
        - !Ref IAMRole
